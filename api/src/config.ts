@@ -1,6 +1,6 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { DefaultNamingStrategy } from 'typeorm';
-
+import 'dotenv/config';
 import { join } from 'path';
 import * as process from 'process';
 
