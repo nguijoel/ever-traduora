@@ -25,7 +25,7 @@ import { resXExporter } from '../formatters/resx';
 import { merge } from 'lodash';
 import { ProjectUser } from 'entity/project-user.entity';
 import { ProjectClient } from 'entity/project-client.entity';
-import { S3Client, ListBucketsCommand, ListBucketsCommandOutput } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 const env = process.env;
 
@@ -89,13 +89,14 @@ export class PushController {
       });
 
       if (items.length === projectLocales.length) {
-        const result = await this.toS3(items);
+        const result = await this.toS3(items, query.format);
         res.status(HttpStatus.OK);
         res.send(result);
       }
     });
   }
-  private async toS3(items: PushItem[]): Promise<any> {
+
+  private async toS3(items: PushItem[], format: ImportExportFormat): Promise<any> {
 
     const client = new S3Client({
       region: env.TR_DB_AWS_REGION,
@@ -115,11 +116,12 @@ export class PushController {
         items.forEach(async (e: PushItem) => {
           const params: any = {
             Bucket: env.TR_DB_AWS_BUCKET,
-            Key: `site/${e.projectId}/data/locale/${e.iso}`,
-            Body: e.data
+            Key: this.buildPath(e.projectId, e.iso),
+            Body: e.data,
+            ContentType: this.getContentType(format),
           };
 
-          const command = new ListBucketsCommand(params);
+          const command = new PutObjectCommand(params);
           const r = await client.send(command);
           detail.push({
             language: e.language,
@@ -127,7 +129,7 @@ export class PushController {
           });
 
           if (detail.length === items.length) resolve({
-            message:`Pushed ${detail.length} locales to S3`,
+            message: `Pushed ${detail.length} locales to S3`,
             project_id: e.projectId,
             detail
           });
@@ -136,6 +138,10 @@ export class PushController {
         reject(err)
       }
     });
+  }
+
+  private buildPath(projectId: string, iso: string): string {
+    return `site_${projectId}/locale/${iso}`;
   }
 
   private async serialize(projectId: string, projectLocale: ProjectLocale, membership: ProjectClient | ProjectUser, query: ExportQuery): Promise<string | Buffer> {
@@ -234,6 +240,34 @@ export class PushController {
         return await resXExporter(data);
       default:
         throw new Error('Export format not implemented');
+    }
+  }
+
+  private getContentType(format: ImportExportFormat): string {
+    switch (format) {
+
+      case 'androidxml':
+        return 'application/xml';
+
+      case 'csv':
+        return 'text/csv';
+
+      case 'jsonflat':
+      case 'jsonnested':
+        return 'application/json';
+
+      case 'strings':
+        return 'text/plain';
+
+      case 'php':
+      case 'resx':
+      case 'xliff12':
+      case 'yamlflat':
+      case 'yamlnested':
+        return 'application/octet-stream';
+
+      default:
+        return 'application/octet-stream';
     }
   }
 }
