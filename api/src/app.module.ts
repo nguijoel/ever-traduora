@@ -22,6 +22,7 @@ import ProjectController from './controllers/project.controller';
 import TermController from './controllers/term.controller';
 import TranslationController from './controllers/translation.controller';
 import UserController from './controllers/user.controller';
+import {PushController} from './controllers/push.controller';
 import { Invite } from './entity/invite.entity';
 import { Locale } from './entity/locale.entity';
 import { Plan } from './entity/plan.entity';
@@ -69,6 +70,7 @@ import ProjectStatsController from './controllers/project-stats.controller';
     ProjectClientController,
     ProjectLabelController,
     ExportsController,
+    PushController,
     LocaleController,
     IndexController,
   ],
