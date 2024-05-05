@@ -6,6 +6,13 @@
           <div class="d-flex flex-row justify-content-between w-100">
             <div>
               <p class="font-serif text-white truncate mb-1">{{ project.name }}</p>
+
+              <!-- ONTOO: EXTENSION -->
+              <p class="font-serif text-white mb-1 text-uppercase">
+                <small class="d-inline-block text-truncate" style="max-width: 150px;">{{ project.id }}</small>
+              </p>
+              <!-- / ONTOO: EXTENSION -->
+
               <span class="badge badge-secondary mb-2">{{ project.role | titlecase }}</span>
               <div *ngIf="projectStats$ | async as projectStats">
                 <p class="text-muted text-sm mb-0">

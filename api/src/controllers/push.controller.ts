@@ -25,6 +25,16 @@ import { resXExporter } from '../formatters/resx';
 import { merge } from 'lodash';
 import { ProjectUser } from 'entity/project-user.entity';
 import { ProjectClient } from 'entity/project-client.entity';
+import { S3Client, ListBucketsCommand, ListBucketsCommandOutput } from "@aws-sdk/client-s3";
+
+const env = process.env;
+
+export interface PushItem {
+  iso: string;
+  language: string;
+  data: string | Buffer;
+  projectId: string;
+}
 
 @Controller('api/v1/projects/:projectId/push')
 export class PushController {
@@ -63,21 +73,67 @@ export class PushController {
       throw new NotFoundException('locales not found');
     }
 
-    const result: any[] = [];
+    const items: PushItem[] = [];
 
-    projectLocales.forEach(async (e: ProjectLocale, index: number) => {
-      query.locale = e.locale.code;
+    projectLocales.forEach(async (e: ProjectLocale) => {
 
-      const data = await this.serialize(projectId, e, membership, query);
+      const qs = { ...query, locale: e.locale.code };
 
-      result.push({
-        locale: e.locale.code,
+      const data = await this.serialize(projectId, e, membership, qs);
+
+      items.push({
+        iso: e.locale.code,
+        language: e.locale.language,
+        projectId,
         data
       });
 
-      if (index === projectLocales.length - 1) {
+      if (items.length === projectLocales.length) {
+        const result = await this.toS3(items);
         res.status(HttpStatus.OK);
-        res.send(`${projectLocales.length} pushed in total.`);
+        res.send(result);
+      }
+    });
+  }
+  private async toS3(items: PushItem[]): Promise<any> {
+
+    const client = new S3Client({
+      region: env.TR_DB_AWS_REGION,
+      credentials: {
+        accessKeyId: env.TR_DB_AWS_ACCESS_KEY_ID,
+        secretAccessKey: env.TR_DB_AWS_SECRET_ACCESS_KEY
+      }
+    });
+
+    return new Promise((resolve, reject) => {
+      try {
+
+
+        const detail: any[] = [];
+
+
+        items.forEach(async (e: PushItem) => {
+          const params: any = {
+            Bucket: env.TR_DB_AWS_BUCKET,
+            Key: `site/${e.projectId}/data/locale/${e.iso}`,
+            Body: e.data
+          };
+
+          const command = new ListBucketsCommand(params);
+          const r = await client.send(command);
+          detail.push({
+            language: e.language,
+            path: params.Key
+          });
+
+          if (detail.length === items.length) resolve({
+            message:`Pushed ${detail.length} locales to S3`,
+            project_id: e.projectId,
+            detail
+          });
+        });
+      } catch (err) {
+        reject(err)
       }
     });
   }

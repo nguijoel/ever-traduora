@@ -6,6 +6,7 @@ import { ExportFormat, EXPORT_FORMATS } from '../../models/export';
 import { Locale } from '../../models/locale';
 import { Project } from '../../models/project';
 import { ExportService } from '../../services/export.service';
+import { PushService } from '../../services/push.service';
 
 @Component({
   selector: 'app-export-locale',
@@ -30,7 +31,9 @@ export class ExportLocaleComponent implements OnInit {
 
   errorMessage: string;
 
-  constructor(private exportService: ExportService) {}
+  constructor(
+    private exportService: ExportService,
+    private pushService: PushService) {}
 
   ngOnInit() {}
 
@@ -56,6 +59,36 @@ export class ExportLocaleComponent implements OnInit {
 
     await this.exportService
       .exportAndDownload(this.project.id, this.selectedLocale.code, this.selectedFormat, this.untranslated, this.selectedFallbackLocale?.code)
+      .pipe(
+        catchError(error => {
+          console.error(error);
+          this.errorMessage = errorToMessage(error, 'ExportLocale');
+          return throwError(error);
+        }),
+        finalize(() => (this.loading = false)),
+      )
+      .toPromise();
+  }
+
+  /**
+   * ONTOO Extensions
+  */
+
+  validPushInputs() {
+    return !!this.selectedFormat;
+  }
+
+  async push() {
+
+    if (!this.validPushInputs()) {
+      return;
+    }
+
+    this.errorMessage = undefined;
+    this.loading = true;
+
+    await this.pushService
+      .push(this.project.id, this.selectedFormat.code, this.untranslated, this.selectedFallbackLocale?.code)
       .pipe(
         catchError(error => {
           console.error(error);

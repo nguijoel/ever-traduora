@@ -38,6 +38,7 @@
 
 <hr />
 
-<div class="d-flex align-content-center justify-content-end">
+<div class="d-flex align-content-center justify-content-end gap-8">
+  <button type="button" class="btn btn-primary mr-3" (click)="push()" [disabled]="!validPushInputs() || loading">Push All</button>
   <button type="button" class="btn btn-primary" (click)="export()" [disabled]="!validInputs() || loading">Download</button>
 </div>
