@@ -64,6 +64,7 @@ export const config = {
       entities: ['src/entity/*.entity*'],
       migrations: ['src/migrations/*'],
       namingStrategy: env.TR_DB_TYPE === 'postgres' ? new SnakeNamingStrategy() : new DefaultNamingStrategy(),
+      dateStrings: true
     } as TypeOrmModuleOptions,
   },
 };
