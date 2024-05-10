@@ -35,7 +35,7 @@ async function bootstrap() {
   }
 
   const port = config.port;
-  const host = 'localhost';
+  const host = '0.0.0.0';
 
   // Setup swagger
   {
@@ -63,10 +63,10 @@ async function bootstrap() {
 
     const document = SwaggerModule.createDocument(app, options);
     SwaggerModule.setup('api/v1/swagger', app, document, { customSiteTitle: 'Traduora API v1 docs' });
-    console.log(`Swagger UI available at http://${host}:${port}/api/v1/swagger`);
+    console.log(`Swagger UI available at http://${host === '0.0.0.0' ? 'localhost' : host}:${port}/api/v1/swagger`);
   }
 
-  await app.listen(port, host, () => {
+  await app.listen(port, () => {
     console.log(`Listening at http://${host}:${port}`);
   });
 }
