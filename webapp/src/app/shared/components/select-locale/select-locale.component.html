@@ -1,6 +1,10 @@
 <div>
   <div class="card p-3 mb-3 d-flex flex-column justify-content-start align-items-start" *ngIf="selection">
-    <p class="m-0 text-muted">Selected:</p>
+
+    <!-- ONTOO: CLEAR -->
+    <p class="m-0 text-muted">Selected: <a href="javascript:void(0)"  *ngIf="canClear && selection" (click)="select(null)">Clear</a></p>
+    <!-- / ONTOO: CLEAR -->
+
     <div class="w-100 d-flex flex-row justify-content-between align-items-center">
       <p class="m-0">
         {{ selection.language }} <span *ngIf="selection.region" class="text-muted text-sm">{{ selection.region }}</span>

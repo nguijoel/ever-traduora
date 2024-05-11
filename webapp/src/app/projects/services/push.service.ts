@@ -14,9 +14,9 @@ export class PushService {
 
   constructor(private http: HttpClient) {}
 
-  push(projectId: string, format: string, untranslated: boolean, fallbackLocale?: string): Observable<any> {
+  push(projectId: string, format: string, untranslated: boolean, fallbackLocale?: string, localeCode?: string): Observable<any> {
 
-    const url = new URL(`${this.endpoint}/projects/${projectId}/push?locale=en&format=${format}&untranslated=${untranslated}`);
+    const url = new URL(`${this.endpoint}/projects/${projectId}/push?locale=${localeCode || 'xx' }&format=${format}&untranslated=${untranslated}`);
 
     if (fallbackLocale) {
       url.searchParams.append('fallbackLocale', fallbackLocale);

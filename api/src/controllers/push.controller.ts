@@ -63,10 +63,14 @@ export class PushController {
       throw new BadRequestException('locale is a required param');
     }
 
+    const  where: any = { project: membership.project };
+
+    if(query.locale !== 'xx') where.locale =  {code: query.locale};
+
     // Ensure locale is requested project locale
-    const projectLocales = await this.projectLocaleRepo.find({
-      where: { project: membership.project },
-      relations: ['locale']
+    const projectLocales = await this.projectLocaleRepo.find({ // Fetch all
+        where,
+        relations: ['locale']
     });
 
     if (!projectLocales) {
