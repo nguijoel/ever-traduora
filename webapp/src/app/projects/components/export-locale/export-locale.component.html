@@ -7,7 +7,16 @@
 
 <div class="form-group">
   <label>Select the locale to export</label>
-  <app-select-locale class="mb-5" [locales]="locales" [limit]="5" [loading]="loading" (selectLocale)="selectLocale($event)"></app-select-locale>
+
+  <!-- ONTOO: CLEAR -->
+  <app-select-locale class="mb-5"
+    [locales]="locales"
+    [limit]="5"
+    [loading]="loading"
+    [canClear]="true"
+    (selectLocale)="selectLocale($event)">
+  </app-select-locale>
+  <!-- / ONTOO: CLEAR -->
 </div>
 
 <div class="form-group">
@@ -17,6 +26,7 @@
     [locales]="locales"
     [limit]="5"
     [loading]="loading"
+    [canClear]="true"
     (selectLocale)="selectFallbackLocale($event)"
   ></app-select-locale>
 </div>
@@ -39,6 +49,6 @@
 <hr />
 
 <div class="d-flex align-content-center justify-content-end gap-8">
-  <button type="button" class="btn btn-primary mr-3" (click)="push()" [disabled]="!validPushInputs() || loading">Push All</button>
+  <button type="button" class="btn btn-primary mr-3" (click)="push()" [disabled]="!validPushInputs() || loading">Push {{ selectedLocale?.language || 'All'}}</button>
   <button type="button" class="btn btn-primary" (click)="export()" [disabled]="!validInputs() || loading">Download</button>
 </div>

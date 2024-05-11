@@ -24,6 +24,9 @@ export class SelectLocaleComponent implements OnInit, OnChanges {
   @Input()
   preserveHeight = false;
 
+  @Input()
+  canClear = false;
+
   @Output()
   selectLocale = new EventEmitter<Locale>();
 
@@ -60,9 +63,9 @@ export class SelectLocaleComponent implements OnInit, OnChanges {
     }),
   );
 
-  constructor() {}
+  constructor() { }
 
-  ngOnInit() {}
+  ngOnInit() { }
 
   ngOnChanges() {
     this.ngChanged$.next(this.text$.getValue());

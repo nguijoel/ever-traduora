@@ -88,7 +88,7 @@ export class ExportLocaleComponent implements OnInit {
     this.loading = true;
 
     await this.pushService
-      .push(this.project.id, this.selectedFormat.code, this.untranslated, this.selectedFallbackLocale?.code)
+      .push(this.project.id, this.selectedFormat.code, this.untranslated, this.selectedFallbackLocale?.code, this.selectedLocale?.code)
       .pipe(
         catchError(error => {
           console.error(error);
