@@ -17,6 +17,10 @@
 		"url": "https://ever.co"
 	},
 	"scripts": {
+    "pm2-start": "npx pm2 start src/main.js",
+		"pm2-ls": "npx pm2 [list|ls|status]",
+		"pm2-stop": "npx pm2 stop all",
+		"pm2-delete": "npx pm2 delete all",
 		"fmt": "prettier --write \"src/**/*.ts\"",
 		"start": "cross-env TR_MAIL_DEBUG=true TR_CORS_ENABLED=true nodemon",
 		"build": "tsc && copyfiles src/templates/**/* ../dist",
