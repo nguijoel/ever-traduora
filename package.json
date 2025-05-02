@@ -1,21 +1,21 @@
 {
-  "name": "ever-traduora",
+  "name": "ontoo-traduora",
   "version": "0.19.4",
-  "description": "Ever® Traduora - Open Translation Management Platform",
+  "description": "ONTOO Media - Open Translation Management Platform",
   "license": "AGPL-3.0-only",
-  "homepage": "https://traduora.co",
+  "homepage": "https://resx.ontoo.cloud",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ever-co/ever-traduora.git"
+    "url": "git+https://github.com/nguijoel/ontoo-traduora"
   },
   "bugs": {
-    "url": "https://github.com/ever-co/ever-traduora/issues"
+    "url": "https://github.com/nguijoel/ontoo-traduora/issues"
   },
   "private": true,
   "author": {
-    "name": "Ever Co. LTD",
-    "email": "ever@ever.co",
-    "url": "https://ever.co"
+    "name": "Ontoo Media LTD",
+    "email": "info@ontoo.cloud",
+    "url": "https://ontoo.uk"
   },
   "scripts": {
     "prepare:husky": "npx husky install .husky",
