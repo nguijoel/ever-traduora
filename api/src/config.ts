@@ -1,10 +1,24 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { DefaultNamingStrategy } from 'typeorm';
-import 'dotenv/config';
+import * as dotenv from 'dotenv';
 import { join } from 'path';
 import * as process from 'process';
-
 import { SnakeNamingStrategy } from './utils/snake-naming-strategy';
+
+const entitiesGlob = join(__dirname, 'entity', '*.entity.{js,ts}');
+const migrationsGlob = join(__dirname, 'migrations', '*.{js,ts}');
+
+// Load .env deterministically (works under IIS)
+dotenv.config({
+  path: join(__dirname, '.env'),        // if .env is in /src (your current setup)
+  override: false,
+});
+
+// Optional fallback if you later move .env back to site root
+dotenv.config({
+  path: join(__dirname, '..', '.env'),
+  override: false,
+});
 
 const env = process.env;
 
@@ -61,8 +75,8 @@ export const config = {
       synchronize: false,
       logging: false,
       keepConnectionAlive: true,
-      entities: ['src/entity/*.entity*'],
-      migrations: ['src/migrations/*'],
+entities: [entitiesGlob],
+migrations: [migrationsGlob],
       namingStrategy: env.TR_DB_TYPE === 'postgres' ? new SnakeNamingStrategy() : new DefaultNamingStrategy(),
       dateStrings: true
     } as TypeOrmModuleOptions,
