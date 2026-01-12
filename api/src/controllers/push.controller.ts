@@ -144,9 +144,15 @@ export class PushController {
     });
   }
 
-  private buildPath(projectId: string, iso: string): string {
-    return `site_${projectId}/locale/${iso}`;
-  }
+private buildPath(projectId: string, iso: string): string {
+  const keyTemplate =
+    env.TR_DB_S3_KEY_TEMPLATE || 'resources/{id}/{iso}/{iso}.json';
+
+  return keyTemplate
+    .replace(/\{id\}/g, projectId)
+    .replace(/\{iso\}/g, iso);
+}
+
 
   private async serialize(projectId: string, projectLocale: ProjectLocale, membership: ProjectClient | ProjectUser, query: ExportQuery): Promise<string | Buffer> {
     const queryBuilder = this.termRepo

@@ -9,10 +9,10 @@ const entitiesGlob = join(__dirname, 'entity', '*.entity.{js,ts}');
 const migrationsGlob = join(__dirname, 'migrations', '*.{js,ts}');
 
 // Load .env deterministically (works under IIS)
-dotenv.config({
-  path: join(__dirname, '.env'),        // if .env is in /src (your current setup)
-  override: false,
-});
+// dotenv.config({
+//   path: join(__dirname, '.env'),        // if .env is in /src (your current setup)
+//   override: false,
+// });
 
 // Optional fallback if you later move .env back to site root
 dotenv.config({
