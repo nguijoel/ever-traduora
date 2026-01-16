@@ -1,10 +1,18 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { DefaultNamingStrategy } from 'typeorm';
+import * as dotenv from 'dotenv';
 import { join } from 'path';
 import * as process from 'process';
 import { SnakeNamingStrategy } from './utils/snake-naming-strategy';
 
 const env = process.env;
+
+if(env.NODE_ENV === 'dev'){ dotenv.config(); }
+else dotenv.config({
+  path: join(__dirname, '..', '.env'),
+  override: false,
+});
+
 const getBoolOrDefault = (value: string, defaultValue: boolean) => (value ? value === 'true' : defaultValue);
 
 const getNumberOrDefault = (value: string, defaultValue: number) => {

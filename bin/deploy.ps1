@@ -1,6 +1,6 @@
 param(
   [string]$LocalDir = (Join-Path $PSScriptRoot "..\dist"),
-  [string]$RemoteDir = "resx.ontoo.cloud",
+  [string]$RemoteDir = "resx-b",
   [switch]$UseTls
 )
 

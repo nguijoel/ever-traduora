@@ -1,5 +1,5 @@
 $ErrorActionPreference = "Stop"
-
+# Execute script: powershell -NoProfile -ExecutionPolicy Bypass -File .\bin\build.ps1
 # Install dependencies
 powershell -NoProfile -ExecutionPolicy Bypass -File .\bin\install-deps.ps1
 
