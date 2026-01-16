@@ -93,7 +93,7 @@ if (-not $LocalDir.EndsWith([System.IO.Path]::DirectorySeparatorChar)) {
 
 Get-ChildItem -LiteralPath $LocalDir -Recurse -File | ForEach-Object {
   $rel = $_.FullName.Substring($baseLen) -replace "\\", "/"
-  if ($rel -match "^test/") {
+  if ($rel -match "(^|/)(test|tests|__tests__)(/|$)") {
     return
   }
   if ($rel -match "\.d\.ts$" -or $rel -match "\.map$") {

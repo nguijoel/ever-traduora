@@ -59,6 +59,86 @@ Also, check out Traduora's [Docker Hub page](https://hub.docker.com/r/everco/eve
 
 Please check out the [configuration](https://docs.traduora.co/docs/configuration) and [deployment](https://docs.traduora.co/docs/deployment) documents for more information on deploying Traduora.
 
+### Build & Deploy (Windows + Yarn local, npm on server)
+
+This repository contains helper scripts to build a deployable artifact locally and upload it via FTP.
+
+#### Local install (recommended)
+
+- Run once (or when dependencies change):
+
+```sh
+yarn install
+```
+
+- Optional convenience aliases:
+
+```sh
+yarn install:local
+yarn install:local:fast
+```
+
+#### Local production build (for deployment)
+
+Build scripts are designed to be fast for iteration and avoid shipping `node_modules` in the deploy artifact.
+
+- Standard deploy build:
+
+```sh
+yarn build:dist
+```
+
+- Faster variants (skip reinstall / reuse existing output):
+
+```sh
+yarn build:dist:fast
+yarn build:dist:fastest
+```
+
+- Partial builds:
+
+```sh
+yarn build:dist:api
+yarn build:dist:webapp
+```
+
+#### Deploy (PowerShell)
+
+Upload the build output using:
+
+```sh
+yarn deploy:dist
+```
+
+The deploy script uses these environment variables:
+
+- `DEPLOY_HOST`
+- `DEPLOY_USER`
+- `DEPLOY_PASSWORD`
+- Optional: `DEPLOY_USE_TLS=1`
+- Optional: `DEPLOY_TLS_IGNORE_CERT_ERRORS=1`
+
+The deploy script excludes:
+
+- `test/`, `tests/`, and `__tests__/` folders (anywhere in the tree)
+- `*.d.ts` and `*.map` files
+
+#### Server install (npm)
+
+On the server (after deploying), install runtime dependencies using npm:
+
+- Recommended (uses `package-lock.json`):
+
+```sh
+npm run install:server
+```
+
+- Fallback:
+
+```sh
+npm run install:server:install
+```
+
 ## 🔗 Frequently Asked Questions
 
 Some questions come up over and over again. Be sure to check out our [FAQ](https://docs.traduora.co/docs/faq) first!

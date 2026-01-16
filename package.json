@@ -27,6 +27,17 @@
     "build:api": "cross-env yarn --cwd ./api build",
     "build:webapp": "cross-env yarn --cwd ./webapp build",
     "build:docs": "cross-env yarn --cwd ./docs-website build",
+    "build:dist": "powershell -NoProfile -ExecutionPolicy Bypass -File ./bin/build.ps1 -SkipNodeModulesCopy",
+    "build:dist:with-deps": "powershell -NoProfile -ExecutionPolicy Bypass -File ./bin/build.ps1",
+    "build:dist:fast": "powershell -NoProfile -ExecutionPolicy Bypass -File ./bin/build.ps1 -SkipNodeModulesCopy -SkipInstall",
+    "build:dist:fastest": "powershell -NoProfile -ExecutionPolicy Bypass -File ./bin/build.ps1 -SkipNodeModulesCopy -SkipInstall -SkipCleanDist",
+    "build:dist:api": "powershell -NoProfile -ExecutionPolicy Bypass -File ./bin/build.ps1 -SkipNodeModulesCopy -SkipInstall -SkipWebappBuild",
+    "build:dist:webapp": "powershell -NoProfile -ExecutionPolicy Bypass -File ./bin/build.ps1 -SkipNodeModulesCopy -SkipInstall -SkipApiBuild",
+    "install:local": "yarn install",
+    "install:local:fast": "yarn install --prefer-offline",
+    "install:server": "npm ci --omit=dev",
+    "install:server:install": "npm install --omit=dev",
+    "deploy:dist": "powershell -NoProfile -ExecutionPolicy Bypass -File ./bin/deploy.ps1",
     "commit": "git-cz",
     "commit:lint": "commitlint -E HUSKY_GIT_PARAMS",
     "semantic-release": "semantic-release"
@@ -113,5 +124,5 @@
     "yarn": ">=1.13.0"
   },
   "snyk": true,
-  "packageManager": "yarn@4.10.2+sha512.0b0e54ad5381f0a35184957bd3ea44e37f5a4fb1960b903b0fb9a3c7c2c009190455c41ef2a1977b1dbd3b72c5f152da696e9c52e2bc78a011b6adea8ee73ba3"
+  "packageManager": "yarn@1.22.22"
 }

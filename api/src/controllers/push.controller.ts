@@ -146,7 +146,7 @@ export class PushController {
 
 private buildPath(projectId: string, iso: string): string {
   const keyTemplate =
-    env.TR_DB_S3_KEY_TEMPLATE || 'resources/{id}/{iso}/{iso}.json';
+    env.TR_DB_S3_KEY_TEMPLATE || 'resource/{id}/{iso}/{iso}.json';
 
   return keyTemplate
     .replace(/\{id\}/g, projectId)
