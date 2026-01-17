@@ -21,9 +21,15 @@ const getNumberOrDefault = (value: string, defaultValue: number) => {
   return isNaN(parsed) ? defaultValue : parsed;
 };
 
+const parsePort= (value: string) => {
+  if (!value) return null;
+  const n = Number(String(value).trim());
+  return Number.isInteger(n) && n > 0 && n < 65536 ? n : null;
+}
+
 export const config = {
   env: env.NODE_ENV || 'dev',
-  port: parseInt(env.TR_PORT, 10) || 8080,
+  port: parsePort(env.TR_PORT) || process.env.PORT ||  8080,
   secret: env.TR_SECRET || 'secret',
   virtualHost: env.TR_VIRTUAL_HOST || 'http://localhost:8080',
   publicDir: env.TR_PUBLIC_DIR || join(__dirname, '../public'),

@@ -1,5 +1,10 @@
-$ErrorActionPreference = "Stop"
 # Execute script: powershell -NoProfile -ExecutionPolicy Bypass -File .\bin\build.ps1
+param(
+  [switch]$IncludeNodeModulesCopy
+)
+
+$ErrorActionPreference = "Stop"
+
 # Install dependencies
 powershell -NoProfile -ExecutionPolicy Bypass -File .\bin\install-deps.ps1
 
@@ -21,7 +26,11 @@ Push-Location "api"
 yarn build:prod
 Pop-Location
 
-# Copy runtime deps (matches bash script behaviour)
-Write-Host "Copying api node_modules to dist..."
-New-Item -ItemType Directory -Force -Path "dist" | Out-Null
-Copy-Item -Recurse -Force "api\node_modules" "dist\"
+if ($IncludeNodeModulesCopy.IsPresent) {
+  # Copy runtime deps (matches bash script behaviour)
+  Write-Host "Copying api node_modules to dist..."
+  New-Item -ItemType Directory -Force -Path "dist" | Out-Null
+  Copy-Item -Recurse -Force "api\node_modules" "dist\"
+} else {
+  Write-Host "Skipping node_modules copy (default)."
+}
