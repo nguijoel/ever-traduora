@@ -19,11 +19,15 @@
   "scripts": {
     "ng": "cross-env NODE_OPTIONS=--openssl-legacy-provider ng",
     "start": "yarn ng serve --open",
+    "start:noflags": "yarn ng serve --configuration=noflags --open",
     "clean": "rimraf ../dist/public",
     "build": "yarn ng build",
+    "build:noflags": "yarn ng build --configuration=noflags",
     "build:prod": "yarn ng build --configuration=production",
+    "build:prod:noflags": "yarn ng build --configuration=production_noflags",
     "fmt": "prettier --write \"src/**/*.ts\"",
     "test": "yarn ng test",
+    "test:noflags": "yarn ng test --configuration=noflags",
     "lint": "yarn ng lint",
     "e2e": "yarn ng e2e"
   },

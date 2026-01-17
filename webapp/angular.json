@@ -25,6 +25,9 @@
             "allowedCommonJsDependencies": ["lodash", "file-saver"]
           },
           "configurations": {
+            "noflags": {
+              "styles": ["src/styles.noflags.scss"]
+            },
             "production": {
               "budgets": [
                 {
@@ -46,6 +49,29 @@
               "extractLicenses": true,
               "vendorChunk": false,
               "buildOptimizer": true
+            },
+            "production_noflags": {
+              "budgets": [
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "6kb"
+                }
+              ],
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
+              ],
+              "styles": ["src/styles.noflags.scss"],
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "namedChunks": false,
+              "aot": true,
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "buildOptimizer": true
             }
           }
         },
@@ -55,8 +81,14 @@
             "browserTarget": "traduora-webapp:build"
           },
           "configurations": {
+            "noflags": {
+              "browserTarget": "traduora-webapp:build:noflags"
+            },
             "production": {
               "browserTarget": "traduora-webapp:build:production"
+            },
+            "production_noflags": {
+              "browserTarget": "traduora-webapp:build:production_noflags"
             }
           }
         },
@@ -76,6 +108,11 @@
             "styles": ["src/styles.scss"],
             "scripts": [],
             "assets": ["src/favicon.ico", "src/assets"]
+          },
+          "configurations": {
+            "noflags": {
+              "styles": ["src/styles.noflags.scss"]
+            }
           }
         },
         "lint": {

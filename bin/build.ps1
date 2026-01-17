@@ -1,7 +1,8 @@
 # bin/build.ps1
 # Execute script: powershell -NoProfile -ExecutionPolicy Bypass -File .\bin\build.ps1
 param(
-  [switch]$IncludeNodeModulesCopy
+  [switch]$IncludeNodeModulesCopy,
+  [switch]$IncludeFlags
 )
 
 $ErrorActionPreference = "Stop"
@@ -18,7 +19,11 @@ if (Test-Path "dist") {
 # Build webapp
 Write-Host "Building webapp..."
 Push-Location "webapp"
-yarn build:prod
+if ($IncludeFlags.IsPresent) {
+  yarn build:prod
+} else {
+  yarn build:prod:noflags
+}
 Pop-Location
 
 # Build api
