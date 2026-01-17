@@ -45,7 +45,7 @@ async function bootstrap() {
   }
 
   const port = config.port;
-  const host = '0.0.0.0';
+  const host = process.env.TR_HOST || '0.0.0.0';
 
   // Setup swagger
   {

@@ -1,7 +1,7 @@
 export const environment = {
   production: true,
   title: 'traduora',
-  homepage: 'https://traduora.co',
+  homepage: 'https://resx.ontoo.cloud',
   apiEndpoint: `${window.location.protocol}//${window.location.host}/api/v1`,
   inviteOnly: false,
 };

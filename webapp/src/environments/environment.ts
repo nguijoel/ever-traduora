@@ -5,8 +5,8 @@
 export const environment = {
   production: false,
   title: 'traduora',
-  homepage: 'https://traduora.co',
-  apiEndpoint: `http://localhost:8080/api/v1`,
+  homepage: 'http://localhost:4200',
+  apiEndpoint: `http://localhost:3000/api/v1`,
   inviteOnly: false,
 };
 
