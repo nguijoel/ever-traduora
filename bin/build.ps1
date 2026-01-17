@@ -1,3 +1,4 @@
+# bin/build.ps1
 # Execute script: powershell -NoProfile -ExecutionPolicy Bypass -File .\bin\build.ps1
 param(
   [switch]$IncludeNodeModulesCopy

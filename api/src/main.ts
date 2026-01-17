@@ -45,6 +45,8 @@ async function bootstrap() {
   }
 
   const port = config.port;
+
+  // ONTOO:BOOTSTRAP
   const host = process.env.TR_HOST || '0.0.0.0';
 
   // Setup swagger
