@@ -18,7 +18,7 @@
   },
   "scripts": {
     "fmt": "prettier --write \"src/**/*.ts\"",
-    "start": "cross-env TR_MAIL_DEBUG=true TR_CORS_ENABLED=true nodemon",
+    "start": "cross-env TR_MAIL_DEBUG=true TR_CORS_ENABLED=true TR_PORT=3005 nodemon",
     "build": "tsc && copyfiles src/templates/**/* ../dist",
     "build:prod": "tsc && copyfiles src/templates/**/* ../dist",
     "clean": "rimraf ../dist/src ../dist/test",

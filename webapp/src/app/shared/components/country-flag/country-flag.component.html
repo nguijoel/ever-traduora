@@ -1,1 +1,7 @@
-<span [class]="'flag-icon flag-icon-squared flag-icon-' + localeIconCode(locale.code)"></span>
+<div *ngIf="useCdnFlags() && flagUrl(); else cssFlag" class="flag-cdn-wrap">
+  <img [src]="flagUrl()" [attr.alt]="countryCode()" class="flag-cdn-img" />
+</div>
+
+<ng-template #cssFlag>
+  <span [class]="'flag-icon flag-icon-squared flag-icon-' + localeIconCode(locale.code)"></span>
+</ng-template>

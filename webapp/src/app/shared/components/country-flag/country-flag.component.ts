@@ -1,4 +1,5 @@
 import { Component, Input } from '@angular/core';
+import { environment } from '../../../../environments/environment';
 import { Locale } from '../../../projects/models/locale';
 
 @Component({
@@ -9,6 +10,29 @@ import { Locale } from '../../../projects/models/locale';
 export class CountryFlagComponent {
   @Input()
   locale: Locale;
+
+  useCdnFlags(): boolean {
+    return environment.useCdnFlags === true;
+  }
+
+  countryCode(): string | undefined {
+    if (!this.locale?.code) {
+      return undefined;
+    }
+    return this.localeIconCode(this.locale.code);
+  }
+
+  flagUrl(): string | undefined {
+    const cc = this.countryCode();
+    if (!cc) {
+      return undefined;
+    }
+    const template = environment.cdnFlagUrlTemplate || '';
+    if (!template) {
+      return undefined;
+    }
+    return template.replace('{cc}', cc.toLowerCase());
+  }
 
   localeIconCode(code: string): string | undefined {
     const match = code.match('.*_([A-Z]{2})$');

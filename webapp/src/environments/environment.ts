@@ -5,9 +5,11 @@
 export const environment = {
   production: false,
   title: 'traduora',
-  homepage: 'http://localhost:4200',
-  apiEndpoint: `http://localhost:3000/api/v1`,
+  homepage: 'http://localhost:4201',
+  apiEndpoint: `http://localhost:3005/api/v1`,
   inviteOnly: false,
+  useCdnFlags: true,
+  cdnFlagUrlTemplate: 'https://flagcdn.com/{cc}.svg',
 };
 
 /*

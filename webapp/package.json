@@ -18,8 +18,8 @@
   },
   "scripts": {
     "ng": "cross-env NODE_OPTIONS=--openssl-legacy-provider ng",
-    "start": "yarn ng serve --open",
-    "start:noflags": "yarn ng serve --configuration=noflags --open",
+    "start": "yarn ng serve --port 4201 --open",
+    "start:noflags": "yarn ng serve --configuration=noflags --port 4201 --open",
     "clean": "rimraf ../dist/public",
     "build": "yarn ng build",
     "build:noflags": "yarn ng build --configuration=noflags",

@@ -29,6 +29,7 @@
     "build:docs": "cross-env yarn --cwd ./docs-website build",
     "build:prod": "powershell -NoProfile -ExecutionPolicy Bypass -File ./bin/build.ps1",
     "start:web": "cross-env yarn --cwd ./webapp start",
+    "start:web:noFlags": "cross-env yarn --cwd ./webapp start:noflags",
     "start:api": "cross-env yarn --cwd ./api start",
     "deploy:prod": "powershell -NoProfile -ExecutionPolicy Bypass -File ./bin/deploy.ps1",
     "commit": "git-cz",
