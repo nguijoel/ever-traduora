@@ -31,6 +31,7 @@ import { merge } from 'lodash';
 import { ProjectUser } from '../entity/project-user.entity';
 import { ProjectClient } from '../entity/project-client.entity';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { CloudFrontClient, CreateInvalidationCommand } from '@aws-sdk/client-cloudfront';
 
 export interface PushItem {
   iso: string;
@@ -126,11 +127,11 @@ export class PushController {
     if (!process.env.TR_AWS_S3_REGION) {
       throw new BadRequestException('TR_AWS_S3_REGION is required');
     }
-    if (!process.env.TR_AWS_S3_ACCESS_KEY_ID) {
-      throw new BadRequestException('TR_AWS_S3_ACCESS_KEY_ID is required');
+    if (!process.env.TR_AWS_ACCESS_KEY_ID) {
+      throw new BadRequestException('TR_AWS_ACCESS_KEY_ID is required');
     }
-    if (!process.env.TR_AWS_S3_SECRET_ACCESS_KEY) {
-      throw new BadRequestException('TR_AWS_S3_SECRET_ACCESS_KEY is required');
+    if (!process.env.TR_AWS_SECRET_ACCESS_KEY) {
+      throw new BadRequestException('TR_AWS_SECRET_ACCESS_KEY is required');
     }
     if (!process.env.TR_AWS_S3_BUCKET) {
       throw new BadRequestException('TR_AWS_S3_BUCKET is required');
@@ -139,8 +140,8 @@ export class PushController {
     const client = new S3Client({
       region: process.env.TR_AWS_S3_REGION,
       credentials: {
-        accessKeyId: process.env.TR_AWS_S3_ACCESS_KEY_ID,
-        secretAccessKey: process.env.TR_AWS_S3_SECRET_ACCESS_KEY,
+        accessKeyId: process.env.TR_AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.TR_AWS_SECRET_ACCESS_KEY,
       },
     });
 
@@ -163,11 +164,80 @@ export class PushController {
       }),
     );
 
+    const invalidation = await this.invalidateCloudFront(
+      items[0]?.projectId,
+      detail.map(d => d.path),
+    );
+
     return {
       message: `Pushed ${detail.length} locales to S3`,
       project_id: items[0]?.projectId,
       detail,
+      invalidation,
     };
+  }
+
+  private async invalidateCloudFront(projectId: string | undefined, keys: string[]): Promise<any | undefined> {
+    if (!projectId) {
+      return undefined;
+    }
+
+    const distributionId = process.env.TR_AWS_CLOUDFRONT_DISTRIBUTION_ID;
+    if (!distributionId) {
+      return undefined;
+    }
+
+    if (!process.env.TR_AWS_ACCESS_KEY_ID || !process.env.TR_AWS_SECRET_ACCESS_KEY) {
+      return undefined;
+    }
+
+    const paths = Array.from(
+      new Set(
+        (keys || [])
+          .map(k => `/${String(k || '').replace(/^\/+/, '')}`)
+          .filter(p => p.length > 1),
+      ),
+    ).slice(0, 1000);
+
+    if (!paths.length) {
+      return undefined;
+    }
+
+    try {
+      const client = new CloudFrontClient({
+        region: 'us-east-1',
+        credentials: {
+          accessKeyId: process.env.TR_AWS_ACCESS_KEY_ID,
+          secretAccessKey: process.env.TR_AWS_SECRET_ACCESS_KEY,
+        },
+      });
+
+      const command = new CreateInvalidationCommand({
+        DistributionId: distributionId,
+        InvalidationBatch: {
+          CallerReference: `${projectId}-${Date.now()}`,
+          Paths: {
+            Quantity: paths.length,
+            Items: paths,
+          },
+        },
+      });
+
+      const result = await client.send(command);
+
+      return {
+        distributionId,
+        invalidationId: result?.Invalidation?.Id,
+        status: result?.Invalidation?.Status,
+        quantity: paths.length,
+      };
+    } catch (error) {
+      console.error('CloudFront invalidation failed', error);
+      return {
+        distributionId,
+        error: error?.message || String(error),
+      };
+    }
   }
 
   private buildPath(projectId: string, iso: string, format?: ImportExportFormat): string {
