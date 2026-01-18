@@ -40,3 +40,7 @@ traduora_mysql_data
 traduora_postgres_data
 
 data/
+
+**/yarn.lock
+!yarn.lock
+
