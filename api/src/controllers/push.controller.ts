@@ -24,9 +24,9 @@ import { ApiOAuth2, ApiTags, ApiOperation, ApiProduces, ApiResponse } from '@nes
 import { androidXmlExporter } from '../formatters/android-xml';
 import { resXExporter } from '../formatters/resx';
 import { merge } from 'lodash';
-import { ProjectUser } from 'entity/project-user.entity';
-import { ProjectClient } from 'entity/project-client.entity';
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { ProjectUser } from '../entity/project-user.entity';
+import { ProjectClient } from '../entity/project-client.entity';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
 const env = process.env;
 
@@ -44,7 +44,7 @@ export class PushController {
     @InjectRepository(Term) private termRepo: Repository<Term>,
     @InjectRepository(ProjectLocale)
     private projectLocaleRepo: Repository<ProjectLocale>,
-  ) { }
+  ) {}
 
   @Get()
   @UseGuards(AuthGuard())
@@ -56,7 +56,6 @@ export class PushController {
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Project or locale not found' })
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Unauthorized' })
   async push(@Req() req: Request, @Res() res: Response, @Param('projectId') projectId: string, @Query() query: ExportQuery) {
-
     const user = this.auth.getRequestUserOrClient(req);
     const membership = await this.auth.authorizeProjectAction(user, projectId, ProjectAction.ExportTranslation);
 
@@ -64,98 +63,111 @@ export class PushController {
       throw new BadRequestException('locale is a required param');
     }
 
-    const  where: any = { project: membership.project };
+    if (!query.format) {
+      throw new BadRequestException('format is a required param');
+    }
 
-    if(query.locale !== 'xx') where.locale =  {code: query.locale};
+    const where: any = { project: membership.project };
+
+    if (query.locale !== 'xx') where.locale = { code: query.locale };
 
     // Ensure locale is requested project locale
-    const projectLocales = await this.projectLocaleRepo.find({ // Fetch all
-        where,
-        relations: ['locale']
+    const projectLocales = await this.projectLocaleRepo.find({
+      // Fetch all
+      where,
+      relations: ['locale'],
     });
 
-    if (!projectLocales) {
+    if (!projectLocales || projectLocales.length === 0) {
       throw new NotFoundException('locales not found');
     }
 
     const items: PushItem[] = [];
 
-    projectLocales.forEach(async (e: ProjectLocale) => {
-
+    for (const e of projectLocales) {
       const qs = { ...query, locale: e.locale.code };
-
       const data = await this.serialize(projectId, e, membership, qs);
 
       items.push({
         iso: e.locale.code,
         language: e.locale.language,
         projectId,
-        data
+        data,
       });
+    }
 
-      if (items.length === projectLocales.length) {
-        const result = await this.toS3(items, query.format);
-        res.status(HttpStatus.OK);
-        res.send(result);
-      }
-    });
+    if (items.length === 0) {
+      throw new NotFoundException('No locales to push');
+    }
+
+    const result = await this.toS3(items, query.format);
+    return res.status(HttpStatus.OK).send(result);
   }
 
   private async toS3(items: PushItem[], format: ImportExportFormat): Promise<any> {
+    if (!env.TR_AWS_S3_REGION) {
+      throw new BadRequestException('TR_AWS_S3_REGION is required');
+    }
+    if (!env.TR_AWS_S3_ACCESS_KEY_ID) {
+      throw new BadRequestException('TR_AWS_S3_ACCESS_KEY_ID is required');
+    }
+    if (!env.TR_AWS_S3_SECRET_ACCESS_KEY) {
+      throw new BadRequestException('TR_AWS_S3_SECRET_ACCESS_KEY is required');
+    }
+    if (!env.TR_AWS_S3_BUCKET) {
+      throw new BadRequestException('TR_AWS_S3_BUCKET is required');
+    }
 
     const client = new S3Client({
       region: env.TR_AWS_S3_REGION,
       credentials: {
         accessKeyId: env.TR_AWS_S3_ACCESS_KEY_ID,
-        secretAccessKey: env.TR_AWS_S3_SECRET_ACCESS_KEY
-      }
+        secretAccessKey: env.TR_AWS_S3_SECRET_ACCESS_KEY,
+      },
     });
 
-    return new Promise((resolve, reject) => {
-      try {
+    const detail = await Promise.all(
+      items.map(async e => {
+        const params: any = {
+          Bucket: env.TR_AWS_S3_BUCKET,
+          Key: this.buildPath(e.projectId, e.iso, format),
+          Body: e.data,
+          ContentType: this.getContentType(format),
+        };
 
+        const command = new PutObjectCommand(params);
+        await client.send(command);
 
-        const detail: any[] = [];
+        return {
+          language: e.language,
+          path: params.Key,
+        };
+      }),
+    );
 
-
-        items.forEach(async (e: PushItem) => {
-          const params: any = {
-            Bucket: env.TR_AWS_S3_BUCKET,
-            Key: this.buildPath(e.projectId, e.iso),
-            Body: e.data,
-            ContentType: this.getContentType(format),
-          };
-
-          const command = new PutObjectCommand(params);
-          const r = await client.send(command);
-          detail.push({
-            language: e.language,
-            path: params.Key
-          });
-
-          if (detail.length === items.length) resolve({
-            message: `Pushed ${detail.length} locales to S3`,
-            project_id: e.projectId,
-            detail
-          });
-        });
-      } catch (err) {
-        reject(err)
-      }
-    });
+    return {
+      message: `Pushed ${detail.length} locales to S3`,
+      project_id: items[0]?.projectId,
+      detail,
+    };
   }
 
-private buildPath(projectId: string, iso: string): string {
-  const keyTemplate =
-    env.TR_AWS_S3_KEY_TEMPLATE || 'resource/{id}/{iso}/{iso}.json';
+  private buildPath(projectId: string, iso: string, format?: ImportExportFormat): string {
+    const ext = format ? this.getExt(format) : 'json';
+    const keyTemplate = env.TR_AWS_S3_KEY_TEMPLATE || 'resource/{id}/{iso}/{iso}.{ext}';
 
-  return keyTemplate
-    .replace(/\{id\}/g, projectId)
-    .replace(/\{iso\}/g, iso);
-}
+    return keyTemplate
+      .replace(/\{id\}/g, projectId)
+      .replace(/\{iso\}/g, iso)
+      .replace(/\{ext\}/g, ext);
+  }
 
-
-  private async serialize(projectId: string, projectLocale: ProjectLocale, membership: ProjectClient | ProjectUser, query: ExportQuery): Promise<string | Buffer> {
+  private async serialize(
+    projectId: string,
+    projectLocale: ProjectLocale,
+    membership: ProjectClient | ProjectUser,
+    query: ExportQuery,
+  ): Promise<string | Buffer> {
     const queryBuilder = this.termRepo
       .createQueryBuilder('term')
       .leftJoinAndSelect('term.translations', 'translation', 'translation.projectLocaleId = :projectLocaleId', {
@@ -256,7 +268,6 @@ private buildPath(projectId: string, iso: string): string {
 
   private getContentType(format: ImportExportFormat): string {
     switch (format) {
-
       case 'androidxml':
         return 'application/xml';
 
@@ -279,6 +290,35 @@ private buildPath(projectId: string, iso: string): string {
 
       default:
         return 'application/octet-stream';
+    }
+  }
+
+  private getExt(format: ImportExportFormat): string {
+    switch (format) {
+      case 'androidxml':
+        return 'xml';
+      case 'csv':
+        return 'csv';
+      case 'xliff12':
+        return 'xlf';
+      case 'jsonflat':
+      case 'jsonnested':
+        return 'json';
+      case 'yamlflat':
+      case 'yamlnested':
+        return 'yml';
+      case 'properties':
+        return 'properties';
+      case 'po':
+        return 'po';
+      case 'strings':
+        return 'strings';
+      case 'php':
+        return 'php';
+      case 'resx':
+        return 'resx';
+      default:
+        return 'bin';
     }
   }
 }
