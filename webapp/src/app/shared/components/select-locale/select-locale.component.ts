@@ -24,8 +24,20 @@ export class SelectLocaleComponent implements OnChanges {
   @Input()
   preserveHeight = false;
 
+  @Input()
+  multi = false;
+
+  @Input()
+  allowSelectAll = false;
+
+  @Input()
+  selectedLocales: Locale[] = [];
+
   @Output()
   selectLocale = new EventEmitter<Locale>();
+
+  @Output()
+  selectedLocalesChange = new EventEmitter<Locale[]>();
 
   selection: Locale | undefined;
 
@@ -65,8 +77,62 @@ export class SelectLocaleComponent implements OnChanges {
   }
 
   select(locale: Locale) {
+    if (this.multi) {
+      this.toggleLocale(locale);
+      return;
+    }
     this.selection = locale;
     this.selectLocale.emit(locale);
+  }
+
+  onAllRowClick(event: Event) {
+    if (this.isFromCheckbox(event)) {
+      return;
+    }
+    this.toggleAll();
+  }
+
+  onRowClick(locale: Locale, event: Event) {
+    if (this.isFromCheckbox(event)) {
+      return;
+    }
+    this.select(locale);
+  }
+
+  private isFromCheckbox(event: Event): boolean {
+    const target = event.target as HTMLElement | null;
+    if (!target) {
+      return false;
+    }
+    return !!target.closest('input[type="checkbox"], label.custom-control-label');
+  }
+
+  isAllSelected(): boolean {
+    const all = this.availableLocales();
+    return !!all.length && this.selectedLocales?.length === all.length;
+  }
+
+  toggleAll() {
+    const all = this.availableLocales();
+    if (this.isAllSelected()) {
+      this.selectedLocales = [];
+    } else {
+      this.selectedLocales = [...all];
+    }
+    this.selectedLocalesChange.emit(this.selectedLocales);
+  }
+
+  isLocaleSelected(locale: Locale): boolean {
+    return this.selectedLocales?.some(l => l.code === locale.code);
+  }
+
+  toggleLocale(locale: Locale) {
+    if (this.isLocaleSelected(locale)) {
+      this.selectedLocales = this.selectedLocales.filter(l => l.code !== locale.code);
+    } else {
+      this.selectedLocales = [...(this.selectedLocales || []), locale];
+    }
+    this.selectedLocalesChange.emit(this.selectedLocales);
   }
 
   defaultLocales(): Locale[] {

@@ -49,6 +49,7 @@ import { CustomThrottlerGuard } from './guards/custom-throttler.guard';
 import { SeedDataService } from './seeds/seed-data.service';
 import { UserSeed } from './seeds/user.seed';
 import { dataSourceOptions } from './connection/datasource';
+import { PushController } from './controllers/push.controller';
 
 @Module({
   imports: [
@@ -83,6 +84,7 @@ import { dataSourceOptions } from './connection/datasource';
     ProjectClientController,
     ProjectLabelController,
     ExportsController,
+    PushController,
     LocaleController,
     IndexController,
   ],

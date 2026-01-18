@@ -39,6 +39,44 @@
           />
         </div>
 
+        <div class="form-group">
+          <label for="fallbackLocaleInput">Fallback locale</label>
+          <div class="d-flex align-items-center">
+            <app-select-locale-modal
+              [readonly]="!(true | can: 'EditProject' | async)"
+              [currentLocale]="selectedFallbackLocale"
+              [locales]="(knownLocales$ | async) || []"
+              [noSelectionLabel]="'Select fallback locale...'"
+              (select)="onFallbackLocaleSelect($event)"
+            ></app-select-locale-modal>
+          </div>
+          <input id="fallbackLocaleInput" type="hidden" formControlName="fallbackLocale" />
+          <small class="form-text text-muted">Used as default fallback locale for exports/push.</small>
+        </div>
+
+        <div class="form-group">
+          <label for="defaultExportFormatInput">Default export format</label>
+          <select
+            [disabled]="!(true | can: 'EditProject' | async)"
+            id="defaultExportFormatInput"
+            class="custom-select"
+            formControlName="defaultExportFormat"
+          >
+            <option value="jsonnested">JSON</option>
+            <option value="jsonflat">JSON Flat</option>
+            <option value="csv">CSV</option>
+            <option value="xliff12">XLIFF 1.2</option>
+            <option value="yamlflat">YAML Flat</option>
+            <option value="yamlnested">YAML</option>
+            <option value="properties">Java Properties</option>
+            <option value="po">Gettext (po)</option>
+            <option value="strings">Strings</option>
+            <option value="php">PHP</option>
+            <option value="resx">Resource RESX</option>
+            <option value="androidxml">Android Resources (XML)</option>
+          </select>
+        </div>
+
         <div class="d-flex justify-content-end" *ngIf="true | can: 'EditProject' | async">
           <button type="button" class="btn btn-sm btn-link-secondary mr-3" [routerLink]="['/projects', project.id]">Cancel</button>
           <button type="submit" [disabled]="!detailsForm.valid || (isLoading$ | async)" class="btn btn-sm btn-primary w-100" style="max-width: 120px">

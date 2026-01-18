@@ -31,7 +31,7 @@ export class ProjectsService {
     return this.http.post<Payload<Project>>(`${this.endpoint}/projects`, data).pipe(map(res => res.data));
   }
 
-  update(id: string, data: { name?: string; description?: string }): Observable<Project> {
+  update(id: string, data: { name?: string; description?: string; fallbackLocale?: string; defaultExportFormat?: string }): Observable<Project> {
     return this.http.patch<Payload<Project>>(`${this.endpoint}/projects/${id}`, data).pipe(map(res => res.data));
   }
 

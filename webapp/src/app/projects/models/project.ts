@@ -8,4 +8,6 @@ export interface Project {
   termsCount: number;
   localesCount: number;
   plan?: Plan;
+  fallbackLocale?: string;
+  defaultExportFormat?: string;
 }

@@ -1,5 +1,5 @@
 <div>
-  <div class="card p-3 mb-3 d-flex flex-column justify-content-start align-items-start" *ngIf="selection">
+  <div class="card p-3 mb-3 d-flex flex-column justify-content-start align-items-start" *ngIf="selection && !multi">
     <p class="m-0 text-muted">Selected:</p>
     <div class="w-100 d-flex flex-row justify-content-between align-items-center">
       <p class="m-0">
@@ -26,6 +26,30 @@
   <div class="d-flex flex-column">
     <ul class="list-group w-100 mb-2" [ngStyle]="{ 'min-height': preserveHeight ? limit * 50 + 'px' : 0 }">
       <li
+        *ngIf="multi && allowSelectAll"
+        class="list-group-item list-group-item-action d-flex justify-content-start align-items-center"
+        [ngClass]="{ active: isAllSelected() }"
+        role="button"
+        tabindex="0"
+        (click)="onAllRowClick($event)"
+        (keydown.enter)="toggleAll()"
+        (keydown.space)="$event.preventDefault(); toggleAll()"
+      >
+        <div class="custom-control custom-checkbox mr-3">
+          <input
+            class="custom-control-input"
+            type="checkbox"
+            id="selectLocaleAll"
+            [checked]="isAllSelected()"
+            (click)="$event.stopPropagation()"
+            (change)="toggleAll()"
+          />
+          <label class="custom-control-label" for="selectLocaleAll"></label>
+        </div>
+        <h5 class="m-0">All</h5>
+      </li>
+
+      <li
         *ngIf="!loading && ((results$ | async) || defaultLocales()).length === 0"
         class="m-0 alert alert-secondary d-flex justify-content-start align-items-center"
       >
@@ -34,9 +58,24 @@
       <li
         *ngFor="let locale of (results$ | async) || defaultLocales()"
         class="list-group-item list-group-item-action d-flex justify-content-start align-items-center"
-        [ngClass]="{ active: selection ? selection.code === locale.code : false }"
-        (click)="select(locale)"
+        [ngClass]="{ active: (!multi && selection ? selection.code === locale.code : false) || (multi && isLocaleSelected(locale)) }"
+        (click)="onRowClick(locale, $event)"
+        role="button"
+        tabindex="0"
+        (keydown.enter)="select(locale)"
+        (keydown.space)="$event.preventDefault(); select(locale)"
       >
+        <div class="custom-control custom-checkbox mr-3" *ngIf="multi">
+          <input
+            class="custom-control-input"
+            type="checkbox"
+            [id]="'selectLocale_' + locale.code"
+            [checked]="isLocaleSelected(locale)"
+            (click)="$event.stopPropagation()"
+            (change)="toggleLocale(locale)"
+          />
+          <label class="custom-control-label" [for]="'selectLocale_' + locale.code"></label>
+        </div>
         <h5 class="m-0">
           {{ locale.language }} <span *ngIf="locale.region" class="text-muted text-sm">{{ locale.region }}</span>
           <app-country-flag class="ml-1 text-sm" [locale]="locale"></app-country-flag>

@@ -7,7 +7,20 @@
 
 <div class="form-group">
   <label>Select the locale to export</label>
-  <app-select-locale class="mb-5" [locales]="locales" [limit]="5" [loading]="loading" (selectLocale)="selectLocale($event)"></app-select-locale>
+  <div class="card p-3 mb-3" *ngIf="locales?.length">
+    <p class="m-0 text-muted">Selected:</p>
+    <p class="m-0">{{ selectedLocalesTitle() }}</p>
+  </div>
+
+  <app-select-locale
+    class="mb-5"
+    [locales]="locales"
+    [limit]="10"
+    [loading]="loading"
+    [multi]="true"
+    [allowSelectAll]="true"
+    [(selectedLocales)]="selectedLocales"
+  ></app-select-locale>
 </div>
 
 <div class="form-group">
@@ -39,5 +52,9 @@
 <hr />
 
 <div class="d-flex align-content-center justify-content-end">
-  <button type="button" class="btn btn-primary" (click)="export()" [disabled]="!validInputs() || loading">Download</button>
+  <button type="button" class="btn btn-primary mr-2" (click)="push()" [disabled]="!validPushInputs() || loading">
+    <span *ngIf="loading" class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>
+    {{ pushButtonLabel() }}
+  </button>
+  <button type="button" class="btn btn-primary" (click)="export()" [disabled]="!validInputs() || loading">{{ downloadButtonLabel() }}</button>
 </div>

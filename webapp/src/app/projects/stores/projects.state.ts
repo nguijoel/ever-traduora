@@ -35,7 +35,7 @@ export class UpdateProject {
   static readonly type = '[Projects] Update project';
   constructor(
     public id: string,
-    public data: { name?: string; description?: string },
+    public data: { name?: string; description?: string; fallbackLocale?: string; defaultExportFormat?: string },
   ) {}
 }
 

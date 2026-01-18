@@ -2,10 +2,12 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Select, Store } from '@ngxs/store';
-import { Observable, Subscription } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { combineLatest, Observable, Subscription } from 'rxjs';
+import { filter, tap } from 'rxjs/operators';
 import { Project } from '../../models/project';
 import { ClearMessages, DeleteProject, ProjectsState, ReloadCurrentProject, UpdateProject } from '../../stores/projects.state';
+import { Locale } from '../../models/locale';
+import { GetKnownLocales, TranslationsState } from '../../stores/translations.state';
 
 @Component({
   selector: 'app-project-settings',
@@ -16,10 +18,17 @@ export class ProjectSettingsComponent implements OnInit, OnDestroy {
   detailsForm = this.fb.group({
     name: ['', Validators.compose([Validators.required, Validators.pattern('.*[^ ].*')])],
     description: [''],
+    fallbackLocale: ['en'],
+    defaultExportFormat: ['jsonnested'],
   });
 
   @Select(ProjectsState.currentProject)
   project$: Observable<Project | undefined>;
+
+  @Select(TranslationsState.knownLocales)
+  knownLocales$: Observable<Locale[]>;
+
+  selectedFallbackLocale: Locale | undefined;
 
   @Select(ProjectsState.isLoading)
   isLoading$: Observable<boolean>;
@@ -37,11 +46,20 @@ export class ProjectSettingsComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.store.dispatch(new ReloadCurrentProject());
-    this.sub = this.project$
+    this.store.dispatch(new GetKnownLocales());
+
+    this.sub = combineLatest([this.project$, this.knownLocales$])
       .pipe(
-        tap(project => {
-          this.name.setValue(project.name);
-          this.description.setValue(project.description);
+        filter(([project]) => !!project),
+        tap(([project, knownLocales]) => {
+          const p = project as Project;
+          this.name.setValue(p.name);
+          this.description.setValue(p.description);
+          this.fallbackLocale.setValue(p.fallbackLocale || 'en');
+          this.defaultExportFormat.setValue(p.defaultExportFormat || 'jsonnested');
+
+          const code = (p.fallbackLocale || 'en').toLowerCase();
+          this.selectedFallbackLocale = knownLocales.find(l => l.code.toLowerCase() === code) || this.selectedFallbackLocale;
         }),
       )
       .subscribe();
@@ -60,6 +78,19 @@ export class ProjectSettingsComponent implements OnInit, OnDestroy {
     return this.detailsForm.get('description');
   }
 
+  get fallbackLocale() {
+    return this.detailsForm.get('fallbackLocale');
+  }
+
+  get defaultExportFormat() {
+    return this.detailsForm.get('defaultExportFormat');
+  }
+
+  onFallbackLocaleSelect(locale: Locale | undefined) {
+    this.selectedFallbackLocale = locale;
+    this.fallbackLocale.setValue(locale?.code || 'en');
+  }
+
   onSubmit(id: string) {
     if (!this.detailsForm.valid) {
       return;
@@ -69,6 +100,8 @@ export class ProjectSettingsComponent implements OnInit, OnDestroy {
       new UpdateProject(id, {
         name: this.name.value as string,
         description: this.description.value as string,
+        fallbackLocale: this.fallbackLocale.value as string,
+        defaultExportFormat: this.defaultExportFormat.value as string,
       }),
     );
   }

@@ -1,9 +1,13 @@
 // api\src\controllers\push.controller.ts
-import { BadRequestException, Controller, Get, HttpStatus, NotFoundException, Param, Query, Req, Res, UseGuards } from '@nestjs/common';
+/**
+ * ONTOO:CONTROLLERS - PushController
+ */
+
+import { BadRequestException, Controller, HttpStatus, NotFoundException, Param, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Request, Response } from 'express';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { ProjectAction } from '../domain/actions';
 import { IntermediateTranslationFormat } from '../domain/formatters';
 import { ExportQuery, ImportExportFormat } from '../domain/http';
@@ -28,8 +32,6 @@ import { ProjectUser } from '../entity/project-user.entity';
 import { ProjectClient } from '../entity/project-client.entity';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
-const env = process.env;
-
 export interface PushItem {
   iso: string;
   language: string;
@@ -46,7 +48,7 @@ export class PushController {
     private projectLocaleRepo: Repository<ProjectLocale>,
   ) {}
 
-  @Get()
+  @Post()
   @UseGuards(AuthGuard())
   @ApiTags('Push')
   @ApiOAuth2([])
@@ -55,7 +57,11 @@ export class PushController {
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Bad request' })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Project or locale not found' })
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Unauthorized' })
-  async push(@Req() req: Request, @Res() res: Response, @Param('projectId') projectId: string, @Query() query: ExportQuery) {
+  async pushPost(@Req() req: Request, @Res() res: Response, @Param('projectId') projectId: string, @Query() query: ExportQuery) {
+    return this.handlePush(req, res, projectId, query);
+  }
+
+  private async handlePush(req: Request, res: Response, projectId: string, query: ExportQuery) {
     const user = this.auth.getRequestUserOrClient(req);
     const membership = await this.auth.authorizeProjectAction(user, projectId, ProjectAction.ExportTranslation);
 
@@ -67,9 +73,21 @@ export class PushController {
       throw new BadRequestException('format is a required param');
     }
 
-    const where: any = { project: membership.project };
+    const where: any = { project: { id: membership.project.id } };
 
-    if (query.locale !== 'xx') where.locale = { code: query.locale };
+    const rawLocales = req.query?.locales;
+    const locales = typeof rawLocales === 'string'
+      ? rawLocales
+          .split(',')
+          .map(l => String(l).trim())
+          .filter(Boolean)
+      : [];
+
+    if (locales.length) {
+      where.locale = { code: In(locales) };
+    } else if (query.locale !== 'xx') {
+      where.locale = { code: query.locale };
+    }
 
     // Ensure locale is requested project locale
     const projectLocales = await this.projectLocaleRepo.find({
@@ -105,31 +123,31 @@ export class PushController {
   }
 
   private async toS3(items: PushItem[], format: ImportExportFormat): Promise<any> {
-    if (!env.TR_AWS_S3_REGION) {
+    if (!process.env.TR_AWS_S3_REGION) {
       throw new BadRequestException('TR_AWS_S3_REGION is required');
     }
-    if (!env.TR_AWS_S3_ACCESS_KEY_ID) {
+    if (!process.env.TR_AWS_S3_ACCESS_KEY_ID) {
       throw new BadRequestException('TR_AWS_S3_ACCESS_KEY_ID is required');
     }
-    if (!env.TR_AWS_S3_SECRET_ACCESS_KEY) {
+    if (!process.env.TR_AWS_S3_SECRET_ACCESS_KEY) {
       throw new BadRequestException('TR_AWS_S3_SECRET_ACCESS_KEY is required');
     }
-    if (!env.TR_AWS_S3_BUCKET) {
+    if (!process.env.TR_AWS_S3_BUCKET) {
       throw new BadRequestException('TR_AWS_S3_BUCKET is required');
     }
 
     const client = new S3Client({
-      region: env.TR_AWS_S3_REGION,
+      region: process.env.TR_AWS_S3_REGION,
       credentials: {
-        accessKeyId: env.TR_AWS_S3_ACCESS_KEY_ID,
-        secretAccessKey: env.TR_AWS_S3_SECRET_ACCESS_KEY,
+        accessKeyId: process.env.TR_AWS_S3_ACCESS_KEY_ID,
+        secretAccessKey: process.env.TR_AWS_S3_SECRET_ACCESS_KEY,
       },
     });
 
     const detail = await Promise.all(
       items.map(async e => {
         const params: any = {
-          Bucket: env.TR_AWS_S3_BUCKET,
+          Bucket: process.env.TR_AWS_S3_BUCKET,
           Key: this.buildPath(e.projectId, e.iso, format),
           Body: e.data,
           ContentType: this.getContentType(format),
@@ -154,7 +172,7 @@ export class PushController {
 
   private buildPath(projectId: string, iso: string, format?: ImportExportFormat): string {
     const ext = format ? this.getExt(format) : 'json';
-    const keyTemplate = env.TR_AWS_S3_KEY_TEMPLATE || 'resource/{id}/{iso}/{iso}.{ext}';
+    const keyTemplate = process.env.TR_AWS_S3_KEY_TEMPLATE || 'resource/{id}/{iso}/{iso}.{ext}';
 
     return keyTemplate
       .replace(/\{id\}/g, projectId)
