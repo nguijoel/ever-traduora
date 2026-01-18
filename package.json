@@ -102,7 +102,7 @@
     },
     "npmPublish": false
   },
-    "workspaces": {
+  "workspaces": {
     "packages": [
       "webapp",
       "api",
