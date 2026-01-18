@@ -26,7 +26,7 @@ import { resXExporter } from '../formatters/resx';
 import { merge } from 'lodash';
 import { ProjectUser } from '../entity/project-user.entity';
 import { ProjectClient } from '../entity/project-client.entity';
-//import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
 const env = process.env;
 
@@ -118,13 +118,13 @@ export class PushController {
       throw new BadRequestException('TR_AWS_S3_BUCKET is required');
     }
 
-    // const client = new S3Client({
-    //   region: env.TR_AWS_S3_REGION,
-    //   credentials: {
-    //     accessKeyId: env.TR_AWS_S3_ACCESS_KEY_ID,
-    //     secretAccessKey: env.TR_AWS_S3_SECRET_ACCESS_KEY,
-    //   },
-    // });
+    const client = new S3Client({
+      region: env.TR_AWS_S3_REGION,
+      credentials: {
+        accessKeyId: env.TR_AWS_S3_ACCESS_KEY_ID,
+        secretAccessKey: env.TR_AWS_S3_SECRET_ACCESS_KEY,
+      },
+    });
 
     const detail = await Promise.all(
       items.map(async e => {
@@ -135,8 +135,8 @@ export class PushController {
           ContentType: this.getContentType(format),
         };
 
-        // const command = new PutObjectCommand(params);
-        // await client.send(command);
+        const command = new PutObjectCommand(params);
+        await client.send(command);
 
         return {
           language: e.language,
