@@ -14,3 +14,16 @@
   transition: background-color 150ms ease;
   color: white !important;
 }
+
+.project-id-copy {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.project-id-copy:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.project-id-copy .material-icons {
+  font-size: 16px;
+  vertical-align: middle;
+}

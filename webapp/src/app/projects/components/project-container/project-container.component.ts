@@ -38,6 +38,19 @@ export class ProjectContainerComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
   ) {}
 
+  copyToClipboard(text: string, event?: MouseEvent) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    document.addEventListener('copy', (e: ClipboardEvent) => {
+      e.clipboardData.setData('text/plain', text);
+      e.preventDefault();
+      document.removeEventListener('copy', null);
+    });
+    document.execCommand('copy');
+  }
+
   toggleMenu() {
     this.shouldCollapse = !this.shouldCollapse;
   }
