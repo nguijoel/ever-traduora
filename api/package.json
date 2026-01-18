@@ -34,7 +34,8 @@
     "seed:default": "cross-env TR_SEED_DATA=true TR_DEFAULT_SEED_ONLY=true ts-node -r tsconfig-paths/register src/seeds/seed-cli.ts"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.569.0",
+    "@aws-sdk/client-s3": "^3.971.0",
+    "@aws-sdk/client-cloudfront": "^3.971.0",
     "@nestjs/axios": "^3.1.0",
     "@nestjs/common": "^10.4.6",
     "@nestjs/config": "^3.3.0",
