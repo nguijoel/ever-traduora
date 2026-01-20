@@ -7,6 +7,12 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+# Ensure we don't keep npm lockfiles in the repo between builds (we generate/copy them only into dist)
+if (Test-Path "package-lock.json") {
+  Write-Host "Removing stale package-lock.json..."
+  Remove-Item -Force "package-lock.json"
+}
+
 # Install dependencies
 powershell -NoProfile -ExecutionPolicy Bypass -File .\bin\install-deps.ps1
 
